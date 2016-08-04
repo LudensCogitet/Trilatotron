@@ -7,6 +7,7 @@ public class Beam : MonoBehaviour {
     public BoxCollider2D myCollider;
 
     public GameObject[] contacts;
+    public float upTime;
 
     void Awake() {
         myRenderer = GetComponent<SpriteRenderer>();
@@ -37,7 +38,14 @@ public class Beam : MonoBehaviour {
             contacts[1].SetActive(true);
         }
         myRenderer.color = newColor;
+        Invoke("Shutdown", upTime);
+    }
 
+    public void Shutdown()
+    {
+        myRenderer.enabled = false;
+        contacts[0].SetActive(false);
+        contacts[1].SetActive(false);
     }
 
 }
