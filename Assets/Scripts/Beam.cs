@@ -25,19 +25,24 @@ public class Beam : MonoBehaviour {
             int oldLayer = gameObject.layer;
             gameObject.layer = Physics2D.IgnoreRaycastLayer;
             Collider2D beamOverlap = Physics2D.OverlapCircle(transform.position, 0.3f, LayerMask.GetMask("Beam"));
-
-            if (!beamOverlap)
-                myRenderer.enabled = true;
-            else
-            {
-                if (beamOverlap.GetComponent<Beam>().myRenderer.enabled != true)
-                    myRenderer.enabled = true;
-            }
             gameObject.layer = oldLayer;
+
+            if (beamOverlap)
+            {
+                if (beamOverlap.GetComponent<Beam>().myRenderer.enabled == true)
+                    return;
+            }
+
+            myRenderer.enabled = true;
             contacts[0].SetActive(true);
             contacts[1].SetActive(true);
         }
+
         myRenderer.color = newColor;
+
+        if (IsInvoking("Shutdown"))
+            CancelInvoke("Shutdown");
+
         Invoke("Shutdown", upTime);
     }
 
