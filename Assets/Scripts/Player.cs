@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Player : MonoBehaviour {
+public class Player : MonoBehaviour
+{
 
     public string myVertical;
     public string myHorizontal;
@@ -21,7 +22,8 @@ public class Player : MonoBehaviour {
     public bool attached = false;
 
     // Use this for initialization
-	void Awake () {
+    void Awake()
+    {
         myColor = GetComponent<SpriteRenderer>().color;
         myRigidBody = GetComponent<Rigidbody2D>();
     }
@@ -46,17 +48,11 @@ public class Player : MonoBehaviour {
                     //transform.Rotate(new Vector3(0f, 0f, Node.nodeAngles.ReturnNearestAngle(transform.eulerAngles.z)));
                 }
             }
-            else if (!IsInvoking("CheckMove"))
+            else if (!IsInvoking("CheckMoveUnattached"))
             {
                 if (Input.GetAxis(myHorizontal) != 0 || Input.GetAxis(myVertical) != 0)
-                    InvokeRepeating("CheckMove", initMoveDelay, moveDelay);
+                    Invoke("CheckMoveUnattached", initMoveDelay);
             }
-            else
-            {
-                if (Input.GetAxis(myHorizontal) == 0 && Input.GetAxis(myVertical) == 0)
-                    CancelInvoke("CheckMove");
-            }
-           
         }
         else if (attached)
         {
@@ -65,40 +61,44 @@ public class Player : MonoBehaviour {
                 attached = false;
                 transform.parent = null;
             }
-            else if (Input.GetButtonDown(myFire))
-            {
-               RaycastHit2D nodeHit = Physics2D.Raycast(raycastOrigin.position, transform.up, Mathf.Infinity, LayerMask.GetMask("Node"));
-               Collider2D beamhit = Physics2D.OverlapCircle(raycastOrigin.position,0.2f, LayerMask.GetMask("Beam"));
-
-                if (nodeHit.collider != null)
-                {
-                    transform.position = nodeHit.collider.gameObject.transform.position;
-
-                }
-                if(beamhit != null)
-                {
-                    beamhit.gameObject.GetComponent<Beam>().Fire(myColor);
-                }
-            }
             else
             {
-                Vector3 dir = new Vector3(Input.GetAxis(myHorizontal), Input.GetAxis(myVertical), 0f);
-              
-                if (dir != Vector3.zero)
+                if (!IsInvoking("CheckMoveAttached"))
                 {
-                  
-                  transform.up = transform.parent.TransformDirection(dir);
-                }       
+                    Vector3 dir = new Vector3(Input.GetAxis(myHorizontal), Input.GetAxis(myVertical), 0f);
+
+                    if (dir != Vector3.zero)
+                    {
+                        transform.up = transform.parent.TransformDirection(dir);
+                        Invoke("CheckMoveAttached", initMoveDelay);
+                    }
+                }
             }
         }
     }
 
-    void CheckMove()
+    void CheckMoveUnattached()
     {
         Vector3 dir = new Vector3(Input.GetAxis(myHorizontal) * mySpeed, Input.GetAxis(myVertical) * mySpeed, 0f);
 
         myRigidBody.AddForce(dir);
         if (dir != Vector3.zero)
             transform.up = dir;
+    }
+
+    void CheckMoveAttached()
+    {
+        RaycastHit2D nodeHit = Physics2D.Raycast(raycastOrigin.position, transform.up, Mathf.Infinity, LayerMask.GetMask("Node"));
+        Collider2D beamhit = Physics2D.OverlapCircle(raycastOrigin.position, 0.2f, LayerMask.GetMask("Beam"));
+
+        if (nodeHit.collider != null)
+        {
+            transform.position = nodeHit.collider.gameObject.transform.position;
+
+        }
+        if (beamhit != null)
+        {
+            beamhit.gameObject.GetComponent<Beam>().Fire(myColor);
+        }
     }
 }
